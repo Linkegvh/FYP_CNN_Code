@@ -8,7 +8,7 @@ int main (){
     int number_of_filters = 8;
 
     int data_RAM[512];
-    int weights_RAM[8][6];
+    // int weights_RAM[8][6];
 
     int correct_result[8][512];
     int calculated_result[8][512];
@@ -21,20 +21,36 @@ int main (){
         scanf("%d", &data_RAM[i]);
     }
 
-    printf("Enter weights:\n");
-    for (int i = 0; i < number_of_filters; i ++){
-        for (int j = 0; j < number_of_feature; j ++){
-            scanf("%d", &weights_RAM[i][j]);
-        }
+    int weights_RAM_layer_1 [8][6] = {
+        {22, -31, -1, 36, 62, 47},
+        {20, 20, -10, 13, -72, 70},
+        {80, 79, 43, 38, 41, -63},
+        {45, 12, -21, -31, 40, 82},
+        {22,	-5,	-40,	-16,	-15,	97},
+        {13,	-82,	89,	-2,	-15,	14},
+        {-14,	114,	65,	-17,	-86,	-74},
+        {6,	-72,	-44,	2,	27,	32}
+    };
+
+    int weights_RAM_layer_2 [16][4] = {
+        
     }
 
-    printf("Enter Correct result:\n");
-    for (int i = 0; i < number_of_filters; i ++){
-        printf("Layer: %d\n", i);
-        for (int j = 0; j < data_set_cnt; j ++){
-            scanf("%d", &correct_result[i][j]);
-        }
-    }
+
+    // printf("Enter weights:\n");
+    // for (int i = 0; i < number_of_filters; i ++){
+    //     for (int j = 0; j < number_of_feature; j ++){
+    //         scanf("%d", &weights_RAM[i][j]);
+    //     }
+    // }
+
+    // printf("Enter Correct result:\n");
+    // for (int i = 0; i < number_of_filters; i ++){
+    //     printf("Layer: %d\n", i);
+    //     for (int j = 0; j < data_set_cnt; j ++){
+    //         scanf("%d", &correct_result[i][j]);
+    //     }
+    // }
 
     /************** Actual Calculation **************/
     printf("Start Calculation\n");
