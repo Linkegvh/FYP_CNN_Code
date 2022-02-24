@@ -1,11 +1,13 @@
 #include <stdio.h>
 
 // decalre functions
-int Compute_pipeline(int weights[6], int data[5], int MUL_enable, int mul_output_control, int ALU_control, int ADDER_input_ctrl, int adder_additional_data, int RELU_Enable, int bias_enable);
+int Compute_pipeline(int weights[6], int data[5], int MUL_enable, int mul_output_control, int ALU_control, int ADDER_input_ctrl, int adder_additional_data, int RELU_Enable, int bias_enable, int Division_enable);
 // int * weights_RAM_init(int *array);
 void weights_RAM_init_1st(int array [][6]);
 void weights_RAM_init_2nd(int array [][16][4]);
 void weights_RAM_init_3rd(int array [][32][4]);
+void weights_FC_init_1st(int array[16][33]);
+void weights_FC_init_2nd(int array[17]);
 
 int main(){
     int data_result_RAM[32][256]; // need to adjust to 32 instead of 48
@@ -81,7 +83,7 @@ int main(){
             int address_width = (j < 256) ? j : j - 256;
 
             // Calculate the result
-            data_result_RAM[address_depth][address_width] = Compute_pipeline(weights, data, 5, 0, 0, 0, 0, 1, 1);
+            data_result_RAM[address_depth][address_width] = Compute_pipeline(weights, data, 5, 0, 0, 0, 0, 1, 1, 1);
         }
     }
     printf("CONV 1D Ended\n");
@@ -154,7 +156,7 @@ int main(){
             int address_width = j / 2;
 
             // Output
-            data_result_RAM[address_depth][address_width] = Compute_pipeline(weights, data, 0, 1, 1, 0, 0, 1, 1);
+            data_result_RAM[address_depth][address_width] = Compute_pipeline(weights, data, 0, 1, 1, 0, 0, 1, 1, 1);
             // if (i == 1){
             //     fprintf(out_file, "Output:%d\n", data_result_RAM[address_depth][address_width]);
             // }
@@ -170,6 +172,7 @@ int main(){
     //     }
     //     fprintf(out_file, "\n");
     // }
+    // return 0;
 
     // CONV 1D again
     // Initialise the weights RAM
@@ -181,7 +184,7 @@ int main(){
         for (j = 0; j < 256; j ++){
             for (int t = 0; t < 8; t++){
                 // Read in 5 data point
-                data[0] = (j - 1 < 0) ? 0 : data_result_RAM[t][j-i];
+                data[0] = (j - 1 < 0) ? 0 : data_result_RAM[t][j-1];
                 data[1] = data_result_RAM[t][j];
                 data[2] = (j + 1 >= 256) ? 0 : data_result_RAM[t][j+1];
                 data[3] = 0;
@@ -195,17 +198,36 @@ int main(){
                 weights[4] = 0;
                 weights[5] = 0;
 
+                // checking
+                // fprintf(out_file, "\ni: %d, j: %d, t:%d\n", i, j, t);
+                // fprintf(out_file, "Data 0: %d \n", data[0]);
+                // fprintf(out_file, "Data 1: %d \n", data[1]);
+                // fprintf(out_file, "Data 2: %d \n", data[2]);
+                // fprintf(out_file, "Data 3: %d \n", data[3]);
+                // fprintf(out_file, "Data 4: %d \n", data[4]);
+
+                // fprintf(out_file, "Weight 0: %d \n", weights[0]);
+                // fprintf(out_file, "Weight 1: %d\n", weights[1]);
+                // fprintf(out_file, "Weight 2: %d \n", weights[2]);
+                // fprintf(out_file, "Weight 3: %d \n", weights[3]);
+                // fprintf(out_file, "Weight 4: %d \n", weights[4]);
+                // fprintf(out_file, "Weight 5: %d \n", weights[5]);
+                
+                // fprintf(out_file, "Additional Data: %d\n", dynamic_data_result_RAM[i][j]);
                 // Calculate the result
                 if (t == 0){
-                    dynamic_data_result_RAM[i][j] = Compute_pipeline(weights, data, 3, 0, 0, 0, 0, 0, 1);
+                    dynamic_data_result_RAM[i][j] = Compute_pipeline(weights, data, 3, 0, 0, 0, 0, 0, 1, 0);
                 }else if (t == 7){
-                    dynamic_data_result_RAM[i][j] = Compute_pipeline(weights, data, 3, 0, 0, 1, dynamic_data_result_RAM[i][j], 1, 0);
+                    dynamic_data_result_RAM[i][j] = Compute_pipeline(weights, data, 3, 0, 0, 1, dynamic_data_result_RAM[i][j], 1, 0, 1);
                 }else{
-                    dynamic_data_result_RAM[i][j] = Compute_pipeline(weights, data, 3, 0, 0, 1, dynamic_data_result_RAM[i][j], 0, 0);
+                    dynamic_data_result_RAM[i][j] = Compute_pipeline(weights, data, 3, 0, 0, 1, dynamic_data_result_RAM[i][j], 0, 0, 0);
                 }
+
+                // fprintf(out_file, "Result: %d\n", dynamic_data_result_RAM[i][j]);
             }
         }
     }
+    // return 0;
     printf("CONV 1D Second time ended\n");
     // for (i = 0; i < 256; i ++){
     //     for (j = 0; j < 16; j ++){
@@ -213,6 +235,7 @@ int main(){
     //     }
     //     fprintf(out_file, "\n");
     // }
+    // return 0;
 
     printf("CONV 1D third time started\n");
     // Initialise the weights RAM
@@ -223,7 +246,7 @@ int main(){
         for (j = 0; j < 256; j ++){
             for (int t = 0; t < 16; t++){
                 // Read in 5 data point
-                data[0] = (j - 1 < 0) ? 0 : dynamic_data_result_RAM[t][j-i];
+                data[0] = (j - 1 < 0) ? 0 : dynamic_data_result_RAM[t][j-1];
                 data[1] = dynamic_data_result_RAM[t][j];
                 data[2] = (j + 1 >= 256) ? 0 : dynamic_data_result_RAM[t][j+1];
                 data[3] = 0;
@@ -239,29 +262,265 @@ int main(){
 
                 // Calculate the result
                 if (t == 0){
-                    data_result_RAM[i][j] = Compute_pipeline(weights, data, 3, 0, 0, 0, 0, 0, 1);
+                    data_result_RAM[i][j] = Compute_pipeline(weights, data, 3, 0, 0, 0, 0, 0, 1, 0);
                 }else if (t == 15){
-                    data_result_RAM[i][j] = Compute_pipeline(weights, data, 3, 0, 0, 1, data_result_RAM[i][j], 1, 0);
+                    data_result_RAM[i][j] = Compute_pipeline(weights, data, 3, 0, 0, 1, data_result_RAM[i][j], 1, 0, 1);
                 }else{
-                    data_result_RAM[i][j] = Compute_pipeline(weights, data, 3, 0, 0, 1, data_result_RAM[i][j], 0, 0);
+                    data_result_RAM[i][j] = Compute_pipeline(weights, data, 3, 0, 0, 1, data_result_RAM[i][j], 0, 0, 0);
                 }
             }
         }
     }
     printf("CONV 1D third time ended\n");
-    for (i = 0; i < 256; i ++){
-        for (j = 0; j < 32; j ++){
-            fprintf(out_file, "%d\t", data_result_RAM[j][i]);
+    // for (i = 0; i < 256; i ++){
+    //     for (j = 0; j < 32; j ++){
+    //         fprintf(out_file, "%d\t", data_result_RAM[j][i]);
+    //     }
+    //     fprintf(out_file, "\n");
+    // }
+    // return 0;
+
+    printf("Global Maxpool started\n");
+    // First iteration
+    for (i = 0; i < 32; i ++){
+        for (j = 0; j < 52; j ++){ // 256 / 5 = 51.2 so approximatly 52 cycles
+            // get 5 data
+            int depth = j * 5;
+            data[0] = data_result_RAM[i][depth];
+            data[1] = (depth + 1 < 256) ? data_result_RAM[i][depth+1] : 0;
+            data[2] = (depth + 2 < 256) ? data_result_RAM[i][depth+2] : 0;
+            data[3] = (depth + 3 < 256) ? data_result_RAM[i][depth+3] : 0;
+            data[4] = (depth + 4 < 256) ? data_result_RAM[i][depth+4] : 0;
+
+            // initialise all weights to 0
+            weights[0] = 0; weights[1] = 0; weights[2] = 0; weights[3] = 0; weights[4] = 0; weights[5] = 0;
+
+            int MUL_enable = 0;
+            int mul_output_control = 1; // data
+            int ALU_control = 1; // Comparator output
+            int ADDER_input_ctrl = 0; 
+            int adder_additional_data = 0;
+            int RELU_Enable = 0;
+            int bias_enable = 0;
+            
+            data_result_RAM[i][j] = Compute_pipeline(weights, data, MUL_enable, mul_output_control, ALU_control, ADDER_input_ctrl, adder_additional_data, RELU_Enable, bias_enable, 1);
         }
-        fprintf(out_file, "\n");
     }
+    // Second iteration
+    for (i = 0; i < 32; i ++){
+        for (j = 0; j < 11; j ++){ // 256 / 5 = 51.2 so approximatly 52 cycles
+            // get 5 data
+            int depth = j * 5;
+            data[0] = data_result_RAM[i][depth];
+            data[1] = (depth + 1 < 52) ? data_result_RAM[i][depth+1] : 0;
+            data[2] = (depth + 2 < 52) ? data_result_RAM[i][depth+2] : 0;
+            data[3] = (depth + 3 < 52) ? data_result_RAM[i][depth+3] : 0;
+            data[4] = (depth + 4 < 52) ? data_result_RAM[i][depth+4] : 0;
 
+            // initialise all weights to 0
+            weights[0] = 0; weights[1] = 0; weights[2] = 0; weights[3] = 0; weights[4] = 0; weights[5] = 0;
 
+            int MUL_enable = 0;
+            int mul_output_control = 1; // data
+            int ALU_control = 1; // Comparator output
+            int ADDER_input_ctrl = 0; 
+            int adder_additional_data = 0;
+            int RELU_Enable = 0;
+            int bias_enable = 0;
+            
+            data_result_RAM[i][j] = Compute_pipeline(weights, data, MUL_enable, mul_output_control, ALU_control, ADDER_input_ctrl, adder_additional_data, RELU_Enable, bias_enable, 1);
+        }
+    }
+    // Third iteration
+    for (i = 0; i < 32; i ++){
+        for (j = 0; j < 3; j ++){ // 256 / 5 = 51.2 so approximatly 52 cycles
+            // get 5 data
+            int depth = j * 5;
+            data[0] = data_result_RAM[i][depth];
+            data[1] = (depth + 1 < 11) ? data_result_RAM[i][depth+1] : 0;
+            data[2] = (depth + 2 < 11) ? data_result_RAM[i][depth+2] : 0;
+            data[3] = (depth + 3 < 11) ? data_result_RAM[i][depth+3] : 0;
+            data[4] = (depth + 4 < 11) ? data_result_RAM[i][depth+4] : 0;
+
+            // initialise all weights to 0
+            weights[0] = 0; weights[1] = 0; weights[2] = 0; weights[3] = 0; weights[4] = 0; weights[5] = 0;
+
+            int MUL_enable = 0;
+            int mul_output_control = 1; // data
+            int ALU_control = 1; // Comparator output
+            int ADDER_input_ctrl = 0; 
+            int adder_additional_data = 0;
+            int RELU_Enable = 0;
+            int bias_enable = 0;
+            
+            data_result_RAM[i][j] = Compute_pipeline(weights, data, MUL_enable, mul_output_control, ALU_control, ADDER_input_ctrl, adder_additional_data, RELU_Enable, bias_enable, 1);
+        }
+    }
+    // Fourth iteration
+    for (i = 0; i < 32; i ++){
+        for (j = 0; j < 1; j ++){ // 256 / 5 = 51.2 so approximatly 52 cycles
+            // get 5 data
+            int depth = j * 5;
+            data[0] = data_result_RAM[i][depth];
+            data[1] = (depth + 1 < 3) ? data_result_RAM[i][depth+1] : 0;
+            data[2] = (depth + 2 < 3) ? data_result_RAM[i][depth+2] : 0;
+            data[3] = (depth + 3 < 3) ? data_result_RAM[i][depth+3] : 0;
+            data[4] = (depth + 4 < 3) ? data_result_RAM[i][depth+4] : 0;
+
+            // initialise all weights to 0
+            weights[0] = 0; weights[1] = 0; weights[2] = 0; weights[3] = 0; weights[4] = 0; weights[5] = 0;
+
+            int MUL_enable = 0;
+            int mul_output_control = 1; // data
+            int ALU_control = 1; // Comparator output
+            int ADDER_input_ctrl = 0; 
+            int adder_additional_data = 0;
+            int RELU_Enable = 0;
+            int bias_enable = 0;
+            
+            data_result_RAM[0][i] = Compute_pipeline(weights, data, MUL_enable, mul_output_control, ALU_control, ADDER_input_ctrl, adder_additional_data, RELU_Enable, bias_enable, 1);
+        }
+    }
+    printf("Global Maxpool ended\n");
+
+    // Print global maxpool result
+    // fprintf(out_file, "Global Maxpool result:\n");
+    // for (i = 0; i < 32; i ++){
+    //     fprintf(out_file, "%d\n", data_result_RAM[0][i]);
+    // }
+
+    // First FC layer
+    printf("FC layer 1 started\n");
+    // Init weights
+    int FC_weights[16][33]; 
+    weights_FC_init_1st(FC_weights);
+
+    for (i = 0; i < 16; i ++){
+        for (j = 0; j < 32; j += 5){
+            // get data
+            data[0] = (j < 32) ? data_result_RAM[0][j] : 0;
+            data[1] = (j + 1 < 32) ? data_result_RAM[0][j+1] : 0;
+            data[2] = (j + 2 < 32) ? data_result_RAM[0][j+2] : 0;
+            data[3] = (j + 3 < 32) ? data_result_RAM[0][j+3] : 0;
+            data[4] = (j + 4 < 32) ? data_result_RAM[0][j+4] : 0;
+
+            // get weights
+            weights[0] = FC_weights[i][0];
+            weights[1] = (j + 1 < 33) ? FC_weights[i][j + 1] : 0; 
+            weights[2] = (j + 2 < 33) ? FC_weights[i][j + 2] : 0;
+            weights[3] = (j + 3 < 33) ? FC_weights[i][j + 3] : 0;
+            weights[4] = (j + 4 < 33) ? FC_weights[i][j + 4] : 0;
+            weights[5] = (j + 5 < 33) ? FC_weights[i][j + 5] : 0;
+            
+            // Checking
+            // fprintf(out_file, "\n");
+            // fprintf(out_file, "i: %d, j: %d\n", i, j);
+            // fprintf(out_file, "Data 0: %d\n", data[0]);
+            // fprintf(out_file, "Data 1: %d\n", data[1]);
+            // fprintf(out_file, "Data 2: %d\n", data[2]);
+            // fprintf(out_file, "Data 3: %d\n", data[3]);
+            // fprintf(out_file, "Data 4: %d\n", data[4]);
+
+            // fprintf(out_file, "Weight 0: %d\n", weights[0]);
+            // fprintf(out_file, "Weight 1: %d\n", weights[1]);
+            // fprintf(out_file, "Weight 2: %d\n", weights[2]);
+            // fprintf(out_file, "Weight 3: %d\n", weights[3]);
+            // fprintf(out_file, "Weight 4: %d\n", weights[4]);
+            // fprintf(out_file, "Weight 5: %d\n", weights[5]);
+
+            // Calculate
+            int MUL_enable = 5;
+            int mul_output_control = 0; // mul out
+            int ALU_control = 0; // adder output
+            int ADDER_input_ctrl = 0, ADDER_input_ctrl_enable = 1;
+            int adder_additional_data = 0;
+            int RELU_Disable = 0, RELU_Enable = 1;
+            int bias_Disable = 0, bias_Enable = 1;
+            int Division_disable = 0, Division_enable = 1;
+            
+            if (j == 0){
+                data_result_RAM[1][i] = Compute_pipeline(weights, data, MUL_enable, mul_output_control, ALU_control, ADDER_input_ctrl, adder_additional_data, RELU_Disable, bias_Enable, Division_disable);
+            }else if (j >= 30){ // last iteration
+                data_result_RAM[1][i] = Compute_pipeline(weights, data, MUL_enable, mul_output_control, ALU_control, ADDER_input_ctrl_enable, data_result_RAM[1][i], RELU_Enable, bias_Disable, Division_enable);
+            }else{
+                data_result_RAM[1][i] = Compute_pipeline(weights, data, MUL_enable, mul_output_control, ALU_control, ADDER_input_ctrl_enable, data_result_RAM[1][i], RELU_Enable, bias_Disable, Division_disable);
+            }
+
+            // fprintf(out_file, "Result: %d\n", data_result_RAM[1][i]);
+        }
+    }
+    // return 0;
+    // printf("FC layer 1 ended\n");
+    // fprintf(out_file, "FC layer 1 result\n");
+    // for (i = 0; i < 16; i ++){
+    //     fprintf(out_file, "%d\n", data_result_RAM[1][i]);
+    // }
+
+    // Second FC layer
+    printf("FC layer 2 started\n");
+    // Init weights
+    int FC_weights_2nd[17]; 
+    weights_FC_init_2nd(FC_weights_2nd);
+
+    for (i = 0; i < 16; i += 5){
+        // get data
+        data[0] = (i < 16) ? data_result_RAM[1][i] : 0;
+        data[1] = (i + 1 < 16) ? data_result_RAM[1][i+1] : 0;
+        data[2] = (i + 2 < 16) ? data_result_RAM[1][i+2] : 0;
+        data[3] = (i + 3 < 16) ? data_result_RAM[1][i+3] : 0;
+        data[4] = (i + 4 < 16) ? data_result_RAM[1][i+4] : 0;
+
+        // get weights
+        weights[0] = FC_weights_2nd[0];
+        weights[1] = (i + 1 < 17) ? FC_weights_2nd[i + 1] : 0; 
+        weights[2] = (i + 2 < 17) ? FC_weights_2nd[i + 2] : 0;
+        weights[3] = (i + 3 < 17) ? FC_weights_2nd[i + 3] : 0;
+        weights[4] = (i + 4 < 17) ? FC_weights_2nd[i + 4] : 0;
+        weights[5] = (i + 5 < 17) ? FC_weights_2nd[i + 5] : 0;
+
+        // checking
+        fprintf(out_file, "\n");
+        fprintf(out_file, "Data 0: %d\n", data[0]);
+        fprintf(out_file, "Data 1: %d\n", data[1]);
+        fprintf(out_file, "Data 2: %d\n", data[2]);
+        fprintf(out_file, "Data 3: %d\n", data[3]);
+        fprintf(out_file, "Data 4: %d\n", data[4]);
+
+        fprintf(out_file, "Weight 0: %d\n", weights[0]);
+        fprintf(out_file, "Weight 1: %d\n", weights[1]);
+        fprintf(out_file, "Weight 2: %d\n", weights[2]);
+        fprintf(out_file, "Weight 3: %d\n", weights[3]);
+        fprintf(out_file, "Weight 4: %d\n", weights[4]);
+        fprintf(out_file, "Weight 5: %d\n", weights[5]);
+
+        // Calculate
+        int MUL_enable = 5;
+        int mul_output_control = 0; // mul out
+        int ALU_control = 0; // adder output
+        int ADDER_input_ctrl = 0, ADDER_input_ctrl_enable = 1;
+        int adder_additional_data = 0;
+        int RELU_Disable = 0, RELU_Enable = 1;
+        int bias_Disable = 0, bias_Enable = 1;
+        int Division_disable = 0, Division_enable = 1;
+        
+        if (i == 0){
+            data_result_RAM[0][0] = Compute_pipeline(weights, data, MUL_enable, mul_output_control, ALU_control, ADDER_input_ctrl, adder_additional_data, RELU_Disable, bias_Enable, Division_disable);
+        }else if (i >= 15){ // last iteration
+            data_result_RAM[0][0] = Compute_pipeline(weights, data, MUL_enable, mul_output_control, ALU_control, ADDER_input_ctrl_enable, data_result_RAM[0][0], RELU_Enable, bias_Disable, Division_enable);
+        }else{
+            data_result_RAM[0][0] = Compute_pipeline(weights, data, MUL_enable, mul_output_control, ALU_control, ADDER_input_ctrl_enable, data_result_RAM[0][0], RELU_Enable, bias_Disable, Division_disable);
+        }
+
+    }
+    // return 0;
+    printf("FC layer 2 ended\n");
+    fprintf(out_file, "FC layer 2 result\n");
+    fprintf(out_file, "%d\n", data_result_RAM[0][0]);
     return 0;
 }
 
 // Compute Unit
-int Compute_pipeline(int weights[6], int data[5], int MUL_enable, int mul_output_control, int ALU_control, int ADDER_input_ctrl, int adder_additional_data, int RELU_Enable, int bias_enable){
+int Compute_pipeline(int weights[6], int data[5], int MUL_enable, int mul_output_control, int ALU_control, int ADDER_input_ctrl, int adder_additional_data, int RELU_Enable, int bias_enable, int Division_enable){
 
     // decalre variables
     int mul_result_0, mul_result_1, mul_result_2, mul_result_3, mul_result_4, mul_result_5;
@@ -305,9 +564,10 @@ int Compute_pipeline(int weights[6], int data[5], int MUL_enable, int mul_output
 
     // ALU stage
     adder_out = mul_out_0 + mul_out_1 + mul_out_2 + mul_out_3 + mul_out_4 + mul_out_5;
-    adder_out = adder_out / 256;
+    // adder_out = adder_out / 256;
     // adder_out = (RELU_Enable) ? (adder_out < 0) ? 0 : adder_out / (256) : adder_out / 256;
     adder_out = (ADDER_input_ctrl) ? adder_out + adder_additional_data : adder_out;
+    adder_out = (Division_enable) ? adder_out / 256 : adder_out;
     adder_out = RELU_Enable ? (adder_out < 0) ? 0 : adder_out : adder_out;
 
     int temp_0 = (mul_out_0 > mul_out_1) ? mul_out_0 : mul_out_1;
@@ -2945,5 +3205,545 @@ void weights_RAM_init_3rd(int array[16][32][4]){
     array[15][31][2] = 0;
     array[15][31][3] = 0;
 
+    return;
+}
+
+// FC layer 1
+void weights_FC_init_1st(int array[16][33]){
+    array[0][0] = 31;
+    array[0][1] = -297;
+    array[0][2] = -300;
+    array[0][3] = -276;
+    array[0][4] = -245;
+    array[0][5] = -13;
+    array[0][6] = -168;
+    array[0][7] = -220;
+    array[0][8] = -294;
+    array[0][9] = 26;
+    array[0][10] = 134;
+    array[0][11] = 81;
+    array[0][12] = -296;
+    array[0][13] = 24;
+    array[0][14] = 14;
+    array[0][15] = -1;
+    array[0][16] = 29;
+    array[0][17] = -13;
+    array[0][18] = 88;
+    array[0][19] = -272;
+    array[0][20] = 104;
+    array[0][21] = -290;
+    array[0][22] = 167;
+    array[0][23] = -218;
+    array[0][24] = 63;
+    array[0][25] = -124;
+    array[0][26] = 46;
+    array[0][27] = 154;
+    array[0][28] = 115;
+    array[0][29] = 123;
+    array[0][30] = -151;
+    array[0][31] = -44;
+    array[1][0] = 19;
+    array[1][1] = 151;
+    array[1][2] = 91;
+    array[1][3] = 110;
+    array[1][4] = 69;
+    array[1][5] = 16;
+    array[1][6] = 147;
+    array[1][7] = 99;
+    array[1][8] = 143;
+    array[1][9] = -91;
+    array[1][10] = -67;
+    array[1][11] = 72;
+    array[1][12] = 46;
+    array[1][13] = -81;
+    array[1][14] = -36;
+    array[1][15] = 13;
+    array[1][16] = -2;
+    array[1][17] = -99;
+    array[1][18] = -21;
+    array[1][19] = 26;
+    array[1][20] = -55;
+    array[1][21] = 95;
+    array[1][22] = -93;
+    array[1][23] = 158;
+    array[1][24] = -112;
+    array[1][25] = 111;
+    array[1][26] = -150;
+    array[1][27] = -191;
+    array[1][28] = -68;
+    array[1][29] = -127;
+    array[1][30] = 59;
+    array[1][31] = -67;
+    array[2][0] = 20;
+    array[2][1] = 130;
+    array[2][2] = 159;
+    array[2][3] = 142;
+    array[2][4] = 57;
+    array[2][5] = -74;
+    array[2][6] = 153;
+    array[2][7] = 6;
+    array[2][8] = 13;
+    array[2][9] = -97;
+    array[2][10] = -100;
+    array[2][11] = -26;
+    array[2][12] = 143;
+    array[2][13] = -25;
+    array[2][14] = -94;
+    array[2][15] = 31;
+    array[2][16] = 25;
+    array[2][17] = -44;
+    array[2][18] = -43;
+    array[2][19] = 24;
+    array[2][20] = -66;
+    array[2][21] = 196;
+    array[2][22] = -86;
+    array[2][23] = 131;
+    array[2][24] = -109;
+    array[2][25] = 168;
+    array[2][26] = -139;
+    array[2][27] = -150;
+    array[2][28] = -82;
+    array[2][29] = -94;
+    array[2][30] = 88;
+    array[2][31] = -88;
+    array[3][0] = 21;
+    array[3][1] = 47;
+    array[3][2] = 168;
+    array[3][3] = 199;
+    array[3][4] = 85;
+    array[3][5] = 51;
+    array[3][6] = 176;
+    array[3][7] = 155;
+    array[3][8] = 66;
+    array[3][9] = -106;
+    array[3][10] = -32;
+    array[3][11] = -33;
+    array[3][12] = 237;
+    array[3][13] = -14;
+    array[3][14] = -117;
+    array[3][15] = 48;
+    array[3][16] = -27;
+    array[3][17] = -119;
+    array[3][18] = -79;
+    array[3][19] = 54;
+    array[3][20] = -89;
+    array[3][21] = 170;
+    array[3][22] = -71;
+    array[3][23] = 101;
+    array[3][24] = -76;
+    array[3][25] = 91;
+    array[3][26] = -164;
+    array[3][27] = -147;
+    array[3][28] = -62;
+    array[3][29] = -105;
+    array[3][30] = 180;
+    array[3][31] = -65;
+    array[4][0] = 28;
+    array[4][1] = -167;
+    array[4][2] = -313;
+    array[4][3] = -260;
+    array[4][4] = -173;
+    array[4][5] = -4;
+    array[4][6] = -98;
+    array[4][7] = -193;
+    array[4][8] = -223;
+    array[4][9] = 50;
+    array[4][10] = 112;
+    array[4][11] = -39;
+    array[4][12] = -165;
+    array[4][13] = 27;
+    array[4][14] = 68;
+    array[4][15] = 53;
+    array[4][16] = 37;
+    array[4][17] = -30;
+    array[4][18] = 76;
+    array[4][19] = -224;
+    array[4][20] = 107;
+    array[4][21] = -253;
+    array[4][22] = 24;
+    array[4][23] = -228;
+    array[4][24] = 39;
+    array[4][25] = -126;
+    array[4][26] = 153;
+    array[4][27] = 43;
+    array[4][28] = 33;
+    array[4][29] = 64;
+    array[4][30] = -207;
+    array[4][31] = 46;
+    array[5][0] = 23;
+    array[5][1] = 111;
+    array[5][2] = 29;
+    array[5][3] = 106;
+    array[5][4] = 59;
+    array[5][5] = 64;
+    array[5][6] = 86;
+    array[5][7] = -15;
+    array[5][8] = -20;
+    array[5][9] = -120;
+    array[5][10] = -32;
+    array[5][11] = -32;
+    array[5][12] = 103;
+    array[5][13] = -69;
+    array[5][14] = -157;
+    array[5][15] = -79;
+    array[5][16] = 52;
+    array[5][17] = -44;
+    array[5][18] = -18;
+    array[5][19] = 75;
+    array[5][20] = -64;
+    array[5][21] = 202;
+    array[5][22] = -136;
+    array[5][23] = 173;
+    array[5][24] = -147;
+    array[5][25] = 120;
+    array[5][26] = -191;
+    array[5][27] = -186;
+    array[5][28] = -132;
+    array[5][29] = -129;
+    array[5][30] = 109;
+    array[5][31] = -95;
+    array[6][0] = 25;
+    array[6][1] = -211;
+    array[6][2] = -188;
+    array[6][3] = -194;
+    array[6][4] = -162;
+    array[6][5] = -25;
+    array[6][6] = -130;
+    array[6][7] = -182;
+    array[6][8] = -256;
+    array[6][9] = 73;
+    array[6][10] = 56;
+    array[6][11] = 50;
+    array[6][12] = -265;
+    array[6][13] = -73;
+    array[6][14] = 35;
+    array[6][15] = 41;
+    array[6][16] = 45;
+    array[6][17] = 58;
+    array[6][18] = 60;
+    array[6][19] = -232;
+    array[6][20] = 28;
+    array[6][21] = -255;
+    array[6][22] = 104;
+    array[6][23] = -183;
+    array[6][24] = 80;
+    array[6][25] = -126;
+    array[6][26] = 123;
+    array[6][27] = 135;
+    array[6][28] = 38;
+    array[6][29] = 39;
+    array[6][30] = -179;
+    array[6][31] = 6;
+    array[7][0] = 33;
+    array[7][1] = -205;
+    array[7][2] = -298;
+    array[7][3] = -269;
+    array[7][4] = -175;
+    array[7][5] = 35;
+    array[7][6] = -208;
+    array[7][7] = -275;
+    array[7][8] = -314;
+    array[7][9] = -18;
+    array[7][10] = 74;
+    array[7][11] = 25;
+    array[7][12] = -262;
+    array[7][13] = -3;
+    array[7][14] = 17;
+    array[7][15] = -70;
+    array[7][16] = 42;
+    array[7][17] = -15;
+    array[7][18] = 97;
+    array[7][19] = -217;
+    array[7][20] = 92;
+    array[7][21] = -288;
+    array[7][22] = 127;
+    array[7][23] = -244;
+    array[7][24] = 28;
+    array[7][25] = -126;
+    array[7][26] = 2;
+    array[7][27] = 127;
+    array[7][28] = 66;
+    array[7][29] = 119;
+    array[7][30] = -153;
+    array[7][31] = 17;
+    array[8][0] = 27;
+    array[8][1] = 130;
+    array[8][2] = 186;
+    array[8][3] = 126;
+    array[8][4] = 115;
+    array[8][5] = 83;
+    array[8][6] = 89;
+    array[8][7] = 104;
+    array[8][8] = 165;
+    array[8][9] = -159;
+    array[8][10] = -53;
+    array[8][11] = 14;
+    array[8][12] = 69;
+    array[8][13] = -77;
+    array[8][14] = -156;
+    array[8][15] = -11;
+    array[8][16] = -9;
+    array[8][17] = -104;
+    array[8][18] = -53;
+    array[8][19] = 148;
+    array[8][20] = -51;
+    array[8][21] = 142;
+    array[8][22] = -127;
+    array[8][23] = 153;
+    array[8][24] = -149;
+    array[8][25] = 157;
+    array[8][26] = -187;
+    array[8][27] = -247;
+    array[8][28] = -91;
+    array[8][29] = -183;
+    array[8][30] = -10;
+    array[8][31] = -106;
+    array[9][0] = 27;
+    array[9][1] = -191;
+    array[9][2] = -197;
+    array[9][3] = -211;
+    array[9][4] = -136;
+    array[9][5] = 12;
+    array[9][6] = -96;
+    array[9][7] = -255;
+    array[9][8] = -200;
+    array[9][9] = 38;
+    array[9][10] = 47;
+    array[9][11] = 87;
+    array[9][12] = -255;
+    array[9][13] = -43;
+    array[9][14] = 13;
+    array[9][15] = -34;
+    array[9][16] = 46;
+    array[9][17] = 54;
+    array[9][18] = 36;
+    array[9][19] = -229;
+    array[9][20] = 101;
+    array[9][21] = -197;
+    array[9][22] = 97;
+    array[9][23] = -207;
+    array[9][24] = 65;
+    array[9][25] = -170;
+    array[9][26] = 124;
+    array[9][27] = 49;
+    array[9][28] = 20;
+    array[9][29] = 25;
+    array[9][30] = -210;
+    array[9][31] = 51;
+    array[10][0] = 31;
+    array[10][1] = -233;
+    array[10][2] = -245;
+    array[10][3] = -242;
+    array[10][4] = -169;
+    array[10][5] = 80;
+    array[10][6] = -179;
+    array[10][7] = -220;
+    array[10][8] = -266;
+    array[10][9] = 67;
+    array[10][10] = 75;
+    array[10][11] = -58;
+    array[10][12] = -186;
+    array[10][13] = -62;
+    array[10][14] = -14;
+    array[10][15] = -15;
+    array[10][16] = 51;
+    array[10][17] = 1;
+    array[10][18] = 51;
+    array[10][19] = -228;
+    array[10][20] = 76;
+    array[10][21] = -211;
+    array[10][22] = 104;
+    array[10][23] = -256;
+    array[10][24] = 104;
+    array[10][25] = -93;
+    array[10][26] = 90;
+    array[10][27] = 144;
+    array[10][28] = 72;
+    array[10][29] = 83;
+    array[10][30] = -209;
+    array[10][31] = 28;
+    array[11][0] = 22;
+    array[11][1] = 161;
+    array[11][2] = 91;
+    array[11][3] = 39;
+    array[11][4] = 134;
+    array[11][5] = 69;
+    array[11][6] = 102;
+    array[11][7] = 103;
+    array[11][8] = 109;
+    array[11][9] = -109;
+    array[11][10] = -94;
+    array[11][11] = 58;
+    array[11][12] = 80;
+    array[11][13] = -21;
+    array[11][14] = -99;
+    array[11][15] = 81;
+    array[11][16] = 42;
+    array[11][17] = -123;
+    array[11][18] = -76;
+    array[11][19] = 128;
+    array[11][20] = -52;
+    array[11][21] = 196;
+    array[11][22] = -119;
+    array[11][23] = 124;
+    array[11][24] = -113;
+    array[11][25] = 135;
+    array[11][26] = -165;
+    array[11][27] = -156;
+    array[11][28] = -121;
+    array[11][29] = -114;
+    array[11][30] = 129;
+    array[11][31] = -115;
+    array[12][0] = 23;
+    array[12][1] = 184;
+    array[12][2] = 182;
+    array[12][3] = 97;
+    array[12][4] = 148;
+    array[12][5] = -58;
+    array[12][6] = 159;
+    array[12][7] = 135;
+    array[12][8] = 145;
+    array[12][9] = -124;
+    array[12][10] = -61;
+    array[12][11] = 9;
+    array[12][12] = 76;
+    array[12][13] = -85;
+    array[12][14] = -69;
+    array[12][15] = 22;
+    array[12][16] = -2;
+    array[12][17] = -109;
+    array[12][18] = -83;
+    array[12][19] = 157;
+    array[12][20] = -51;
+    array[12][21] = 199;
+    array[12][22] = -135;
+    array[12][23] = 187;
+    array[12][24] = -102;
+    array[12][25] = 87;
+    array[12][26] = -166;
+    array[12][27] = -176;
+    array[12][28] = -113;
+    array[12][29] = -124;
+    array[12][30] = 72;
+    array[12][31] = -75;
+    array[13][0] = 19;
+    array[13][1] = 165;
+    array[13][2] = 164;
+    array[13][3] = 35;
+    array[13][4] = 162;
+    array[13][5] = -57;
+    array[13][6] = 107;
+    array[13][7] = 88;
+    array[13][8] = 119;
+    array[13][9] = -67;
+    array[13][10] = -117;
+    array[13][11] = 16;
+    array[13][12] = 105;
+    array[13][13] = 9;
+    array[13][14] = -61;
+    array[13][15] = -52;
+    array[13][16] = 2;
+    array[13][17] = -103;
+    array[13][18] = -13;
+    array[13][19] = 14;
+    array[13][20] = -72;
+    array[13][21] = 153;
+    array[13][22] = -124;
+    array[13][23] = 167;
+    array[13][24] = -105;
+    array[13][25] = 98;
+    array[13][26] = -182;
+    array[13][27] = -135;
+    array[13][28] = -56;
+    array[13][29] = -141;
+    array[13][30] = -1;
+    array[13][31] = -102;
+    array[14][0] = 30;
+    array[14][1] = -242;
+    array[14][2] = -261;
+    array[14][3] = -206;
+    array[14][4] = -133;
+    array[14][5] = 79;
+    array[14][6] = -191;
+    array[14][7] = -258;
+    array[14][8] = -294;
+    array[14][9] = 108;
+    array[14][10] = 57;
+    array[14][11] = 86;
+    array[14][12] = -198;
+    array[14][13] = 37;
+    array[14][14] = 16;
+    array[14][15] = -84;
+    array[14][16] = -16;
+    array[14][17] = 44;
+    array[14][18] = 57;
+    array[14][19] = -196;
+    array[14][20] = -2;
+    array[14][21] = -206;
+    array[14][22] = 125;
+    array[14][23] = -206;
+    array[14][24] = 37;
+    array[14][25] = -119;
+    array[14][26] = 164;
+    array[14][27] = 137;
+    array[14][28] = 46;
+    array[14][29] = 48;
+    array[14][30] = -199;
+    array[14][31] = -30;
+    array[15][0] = 34;
+    array[15][1] = -249;
+    array[15][2] = -406;
+    array[15][3] = -351;
+    array[15][4] = -137;
+    array[15][5] = -23;
+    array[15][6] = -159;
+    array[15][7] = -216;
+    array[15][8] = -303;
+    array[15][9] = 48;
+    array[15][10] = 123;
+    array[15][11] = 54;
+    array[15][12] = -273;
+    array[15][13] = -71;
+    array[15][14] = 46;
+    array[15][15] = 65;
+    array[15][16] = -28;
+    array[15][17] = 23;
+    array[15][18] = 114;
+    array[15][19] = -263;
+    array[15][20] = 34;
+    array[15][21] = -278;
+    array[15][22] = 161;
+    array[15][23] = -357;
+    array[15][24] = 107;
+    array[15][25] = -151;
+    array[15][26] = 96;
+    array[15][27] = 120;
+    array[15][28] = 88;
+    array[15][29] = 73;
+    array[15][30] = -187;
+    array[15][31] = 39;
+
+    return;
+}
+
+// FC lyaer 2
+void weights_FC_init_2nd(int array[17]){
+    array[0] = 29;
+    array[1] = -316;
+    array[2] = 267;
+    array[3] = 259;
+    array[4] = 176;
+    array[5] = -372;
+    array[6] = 267;
+    array[7] = -380;
+    array[8] = -364;
+    array[9] = 190;
+    array[10] = -396;
+    array[11] = -359;
+    array[12] = 217;
+    array[13] = 195;
+    array[14] = 266;
+    array[15] = -351;
+    array[16] = -297;
     return;
 }
