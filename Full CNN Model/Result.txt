@@ -1,50 +1,33 @@
-
-Data 0: 67
-Data 1: 0
-Data 2: 0
-Data 3: 0
-Data 4: 59
-Weight 0: 29
-Weight 1: -316
-Weight 2: 267
-Weight 3: 259
-Weight 4: 176
-Weight 5: -372
-
-Data 0: 0
-Data 1: 55
-Data 2: 58
-Data 3: 0
-Data 4: 51
-Weight 0: 29
-Weight 1: 267
-Weight 2: -380
-Weight 3: -364
-Weight 4: 190
-Weight 5: -396
-
-Data 0: 61
-Data 1: 0
-Data 2: 0
-Data 3: 0
-Data 4: 61
-Weight 0: 29
-Weight 1: -359
-Weight 2: 217
-Weight 3: 195
-Weight 4: 266
-Weight 5: -351
-
-Data 0: 72
-Data 1: 0
-Data 2: 0
-Data 3: 0
-Data 4: 0
-Weight 0: 29
-Weight 1: -297
-Weight 2: 0
-Weight 3: 0
-Weight 4: 0
-Weight 5: 0
-FC layer 2 result
+Global Maxpool result:
+0
+0
+0
+0
+0
+0
+0
+0
+15
+8
+0
+0
+0
+20
+0
+0
+7
+8
+0
+9
+0
+7
+0
+7
+0
+10
+6
+15
+12
+0
+2
 0

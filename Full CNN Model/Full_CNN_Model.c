@@ -281,113 +281,76 @@ int main(){
     // return 0;
 
     printf("Global Maxpool started\n");
-    // First iteration
+    
     for (i = 0; i < 32; i ++){
-        for (j = 0; j < 52; j ++){ // 256 / 5 = 51.2 so approximatly 52 cycles
+        // initialise all weights to 0
+        weights[0] = 0; weights[1] = 0; weights[2] = 0; weights[3] = 0; weights[4] = 0; weights[5] = 0;
+
+        // Control signal
+        int MUL_enable = 0;
+        int mul_output_control = 1; // data
+        int ALU_control = 1; // Comparator output
+        int ADDER_input_ctrl = 0; 
+        int adder_additional_data = 0;
+        int RELU_Enable = 0;
+        int bias_enable = 0;
+
+        // Address increment signal
+        int depth = 0;
+
+        // First iteration
+        for (j = 0; j < 256; j += 5){ // 256 / 5 = 51.2 so approximatly 52 cycles
             // get 5 data
-            int depth = j * 5;
-            data[0] = data_result_RAM[i][depth];
-            data[1] = (depth + 1 < 256) ? data_result_RAM[i][depth+1] : 0;
-            data[2] = (depth + 2 < 256) ? data_result_RAM[i][depth+2] : 0;
-            data[3] = (depth + 3 < 256) ? data_result_RAM[i][depth+3] : 0;
-            data[4] = (depth + 4 < 256) ? data_result_RAM[i][depth+4] : 0;
-
-            // initialise all weights to 0
-            weights[0] = 0; weights[1] = 0; weights[2] = 0; weights[3] = 0; weights[4] = 0; weights[5] = 0;
-
-            int MUL_enable = 0;
-            int mul_output_control = 1; // data
-            int ALU_control = 1; // Comparator output
-            int ADDER_input_ctrl = 0; 
-            int adder_additional_data = 0;
-            int RELU_Enable = 0;
-            int bias_enable = 0;
+            data[0] = data_result_RAM[i][j];
+            data[1] = (j + 1 < 256) ? data_result_RAM[i][j+1] : 0;
+            data[2] = (j + 2 < 256) ? data_result_RAM[i][j+2] : 0;
+            data[3] = (j + 3 < 256) ? data_result_RAM[i][j+3] : 0;
+            data[4] = (j + 4 < 256) ? data_result_RAM[i][j+4] : 0;
             
-            data_result_RAM[i][j] = Compute_pipeline(weights, data, MUL_enable, mul_output_control, ALU_control, ADDER_input_ctrl, adder_additional_data, RELU_Enable, bias_enable, 1);
+            data_result_RAM[i][depth++] = Compute_pipeline(weights, data, MUL_enable, mul_output_control, ALU_control, ADDER_input_ctrl, adder_additional_data, RELU_Enable, bias_enable, 1);
         }
-    }
-    // Second iteration
-    for (i = 0; i < 32; i ++){
-        for (j = 0; j < 11; j ++){ // 256 / 5 = 51.2 so approximatly 52 cycles
+        // Second iteration
+        depth = 0;
+        for (j = 0; j < 52; j += 5){ // 52 / 5 != 11
             // get 5 data
-            int depth = j * 5;
-            data[0] = data_result_RAM[i][depth];
-            data[1] = (depth + 1 < 52) ? data_result_RAM[i][depth+1] : 0;
-            data[2] = (depth + 2 < 52) ? data_result_RAM[i][depth+2] : 0;
-            data[3] = (depth + 3 < 52) ? data_result_RAM[i][depth+3] : 0;
-            data[4] = (depth + 4 < 52) ? data_result_RAM[i][depth+4] : 0;
-
-            // initialise all weights to 0
-            weights[0] = 0; weights[1] = 0; weights[2] = 0; weights[3] = 0; weights[4] = 0; weights[5] = 0;
-
-            int MUL_enable = 0;
-            int mul_output_control = 1; // data
-            int ALU_control = 1; // Comparator output
-            int ADDER_input_ctrl = 0; 
-            int adder_additional_data = 0;
-            int RELU_Enable = 0;
-            int bias_enable = 0;
+            data[0] = data_result_RAM[i][j];
+            data[1] = (j + 1 < 52) ? data_result_RAM[i][j+1] : 0;
+            data[2] = (j + 2 < 52) ? data_result_RAM[i][j+2] : 0;
+            data[3] = (j + 3 < 52) ? data_result_RAM[i][j+3] : 0;
+            data[4] = (j + 4 < 52) ? data_result_RAM[i][j+4] : 0;
             
-            data_result_RAM[i][j] = Compute_pipeline(weights, data, MUL_enable, mul_output_control, ALU_control, ADDER_input_ctrl, adder_additional_data, RELU_Enable, bias_enable, 1);
+            data_result_RAM[i][depth++] = Compute_pipeline(weights, data, MUL_enable, mul_output_control, ALU_control, ADDER_input_ctrl, adder_additional_data, RELU_Enable, bias_enable, 1);
         }
-    }
-    // Third iteration
-    for (i = 0; i < 32; i ++){
-        for (j = 0; j < 3; j ++){ // 256 / 5 = 51.2 so approximatly 52 cycles
+        // Third iteration
+        depth = 0;
+        for (j = 0; j < 11; j += 5){ // 11 / 5 = 3
             // get 5 data
-            int depth = j * 5;
-            data[0] = data_result_RAM[i][depth];
-            data[1] = (depth + 1 < 11) ? data_result_RAM[i][depth+1] : 0;
-            data[2] = (depth + 2 < 11) ? data_result_RAM[i][depth+2] : 0;
-            data[3] = (depth + 3 < 11) ? data_result_RAM[i][depth+3] : 0;
-            data[4] = (depth + 4 < 11) ? data_result_RAM[i][depth+4] : 0;
-
-            // initialise all weights to 0
-            weights[0] = 0; weights[1] = 0; weights[2] = 0; weights[3] = 0; weights[4] = 0; weights[5] = 0;
-
-            int MUL_enable = 0;
-            int mul_output_control = 1; // data
-            int ALU_control = 1; // Comparator output
-            int ADDER_input_ctrl = 0; 
-            int adder_additional_data = 0;
-            int RELU_Enable = 0;
-            int bias_enable = 0;
+            data[0] = data_result_RAM[i][j];
+            data[1] = (j + 1 < 11) ? data_result_RAM[i][j+1] : 0;
+            data[2] = (j + 2 < 11) ? data_result_RAM[i][j+2] : 0;
+            data[3] = (j + 3 < 11) ? data_result_RAM[i][j+3] : 0;
+            data[4] = (j + 4 < 11) ? data_result_RAM[i][j+4] : 0;
             
-            data_result_RAM[i][j] = Compute_pipeline(weights, data, MUL_enable, mul_output_control, ALU_control, ADDER_input_ctrl, adder_additional_data, RELU_Enable, bias_enable, 1);
+            data_result_RAM[i][depth++] = Compute_pipeline(weights, data, MUL_enable, mul_output_control, ALU_control, ADDER_input_ctrl, adder_additional_data, RELU_Enable, bias_enable, 1);
         }
-    }
-    // Fourth iteration
-    for (i = 0; i < 32; i ++){
-        for (j = 0; j < 1; j ++){ // 256 / 5 = 51.2 so approximatly 52 cycles
-            // get 5 data
-            int depth = j * 5;
-            data[0] = data_result_RAM[i][depth];
-            data[1] = (depth + 1 < 3) ? data_result_RAM[i][depth+1] : 0;
-            data[2] = (depth + 2 < 3) ? data_result_RAM[i][depth+2] : 0;
-            data[3] = (depth + 3 < 3) ? data_result_RAM[i][depth+3] : 0;
-            data[4] = (depth + 4 < 3) ? data_result_RAM[i][depth+4] : 0;
-
-            // initialise all weights to 0
-            weights[0] = 0; weights[1] = 0; weights[2] = 0; weights[3] = 0; weights[4] = 0; weights[5] = 0;
-
-            int MUL_enable = 0;
-            int mul_output_control = 1; // data
-            int ALU_control = 1; // Comparator output
-            int ADDER_input_ctrl = 0; 
-            int adder_additional_data = 0;
-            int RELU_Enable = 0;
-            int bias_enable = 0;
-            
-            data_result_RAM[0][i] = Compute_pipeline(weights, data, MUL_enable, mul_output_control, ALU_control, ADDER_input_ctrl, adder_additional_data, RELU_Enable, bias_enable, 1);
-        }
+        // Fourth iteration only compare three items
+        data[0] = data_result_RAM[i][0];
+        data[1] = data_result_RAM[i][1];
+        data[2] = data_result_RAM[i][2];
+        data[3] = 0;
+        data[4] = 0;
+        
+        // Store the result into column 0
+        data_result_RAM[0][i] = Compute_pipeline(weights, data, MUL_enable, mul_output_control, ALU_control, ADDER_input_ctrl, adder_additional_data, RELU_Enable, bias_enable, 1);
     }
     printf("Global Maxpool ended\n");
 
     // Print global maxpool result
-    // fprintf(out_file, "Global Maxpool result:\n");
-    // for (i = 0; i < 32; i ++){
-    //     fprintf(out_file, "%d\n", data_result_RAM[0][i]);
-    // }
+    fprintf(out_file, "Global Maxpool result:\n");
+    for (i = 0; i < 32; i ++){
+        fprintf(out_file, "%d\n", data_result_RAM[0][i]);
+    }
+    return 0;
 
     // First FC layer
     printf("FC layer 1 started\n");
@@ -512,7 +475,6 @@ int main(){
         }
 
     }
-    // return 0;
     printf("FC layer 2 ended\n");
     fprintf(out_file, "FC layer 2 result\n");
     fprintf(out_file, "%d\n", data_result_RAM[0][0]);
