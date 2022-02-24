@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <math.h>
 
 // decalre functions
 int Compute_pipeline(int weights[6], int data[5], int MUL_enable, int mul_output_control, int ALU_control, int ADDER_input_ctrl, int adder_additional_data, int RELU_Enable, int bias_enable, int Division_enable);
@@ -346,11 +347,11 @@ int main(){
     printf("Global Maxpool ended\n");
 
     // Print global maxpool result
-    fprintf(out_file, "Global Maxpool result:\n");
-    for (i = 0; i < 32; i ++){
-        fprintf(out_file, "%d\n", data_result_RAM[0][i]);
-    }
-    return 0;
+    // fprintf(out_file, "Global Maxpool result:\n");
+    // for (i = 0; i < 32; i ++){
+    //     fprintf(out_file, "%d\n", data_result_RAM[0][i]);
+    // }
+    // return 0;
 
     // First FC layer
     printf("FC layer 1 started\n");
@@ -442,19 +443,19 @@ int main(){
         weights[5] = (i + 5 < 17) ? FC_weights_2nd[i + 5] : 0;
 
         // checking
-        fprintf(out_file, "\n");
-        fprintf(out_file, "Data 0: %d\n", data[0]);
-        fprintf(out_file, "Data 1: %d\n", data[1]);
-        fprintf(out_file, "Data 2: %d\n", data[2]);
-        fprintf(out_file, "Data 3: %d\n", data[3]);
-        fprintf(out_file, "Data 4: %d\n", data[4]);
+        // fprintf(out_file, "\n");
+        // fprintf(out_file, "Data 0: %d\n", data[0]);
+        // fprintf(out_file, "Data 1: %d\n", data[1]);
+        // fprintf(out_file, "Data 2: %d\n", data[2]);
+        // fprintf(out_file, "Data 3: %d\n", data[3]);
+        // fprintf(out_file, "Data 4: %d\n", data[4]);
 
-        fprintf(out_file, "Weight 0: %d\n", weights[0]);
-        fprintf(out_file, "Weight 1: %d\n", weights[1]);
-        fprintf(out_file, "Weight 2: %d\n", weights[2]);
-        fprintf(out_file, "Weight 3: %d\n", weights[3]);
-        fprintf(out_file, "Weight 4: %d\n", weights[4]);
-        fprintf(out_file, "Weight 5: %d\n", weights[5]);
+        // fprintf(out_file, "Weight 0: %d\n", weights[0]);
+        // fprintf(out_file, "Weight 1: %d\n", weights[1]);
+        // fprintf(out_file, "Weight 2: %d\n", weights[2]);
+        // fprintf(out_file, "Weight 3: %d\n", weights[3]);
+        // fprintf(out_file, "Weight 4: %d\n", weights[4]);
+        // fprintf(out_file, "Weight 5: %d\n", weights[5]);
 
         // Calculate
         int MUL_enable = 5;
@@ -469,15 +470,18 @@ int main(){
         if (i == 0){
             data_result_RAM[0][0] = Compute_pipeline(weights, data, MUL_enable, mul_output_control, ALU_control, ADDER_input_ctrl, adder_additional_data, RELU_Disable, bias_Enable, Division_disable);
         }else if (i >= 15){ // last iteration
-            data_result_RAM[0][0] = Compute_pipeline(weights, data, MUL_enable, mul_output_control, ALU_control, ADDER_input_ctrl_enable, data_result_RAM[0][0], RELU_Enable, bias_Disable, Division_enable);
+            data_result_RAM[0][0] = Compute_pipeline(weights, data, MUL_enable, mul_output_control, ALU_control, ADDER_input_ctrl_enable, data_result_RAM[0][0], RELU_Disable, bias_Disable, Division_enable);
         }else{
-            data_result_RAM[0][0] = Compute_pipeline(weights, data, MUL_enable, mul_output_control, ALU_control, ADDER_input_ctrl_enable, data_result_RAM[0][0], RELU_Enable, bias_Disable, Division_disable);
+            data_result_RAM[0][0] = Compute_pipeline(weights, data, MUL_enable, mul_output_control, ALU_control, ADDER_input_ctrl_enable, data_result_RAM[0][0], RELU_Disable, bias_Disable, Division_disable);
         }
 
     }
     printf("FC layer 2 ended\n");
     fprintf(out_file, "FC layer 2 result\n");
+    printf("Answer pre exponential: %d\n", data_result_RAM[0][0]);
+    data_result_RAM[0][0] = 1 / (1 + expf(- (((float) data_result_RAM[0][0]) / (float) 256))) * 256;
     fprintf(out_file, "%d\n", data_result_RAM[0][0]);
+    printf("Result: %d\n", data_result_RAM[0][0]);
     return 0;
 }
 
